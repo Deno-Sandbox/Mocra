@@ -36,15 +36,13 @@ export class user {
     async main(request){
         let response:Response = {}
 
-        if(request.method == "GET"){
-
-        } else if(request.method == "POST"){
+        if(request.method == "POST"){
             try{
                 let body = await Deno.readAll(request.body)
                 let data = JSON.parse(new TextDecoder().decode(body))
 
 
-                if(request.url == "/user/create"){
+                if(request.url == "/user/register"){
                     response = await this.createUser(data)
                 }
 
@@ -55,6 +53,12 @@ export class user {
                     error: true,
                     message: "Internal server error"
                 }
+            }
+        } else {
+            response.status = 405
+            response.body = {
+                error: true,
+                message: "Method not allowed"
             }
         }
 
@@ -84,6 +88,7 @@ export class user {
                     let newUser = {
                         username: data.username,
                         email: data.email,
+                        publicKey: this.generatePublicKey(),
                         privateKey: this.generatePrivateKey(data.username),
                         recoveryPhrase: this.generateRecoveryPhrase()
                     }
@@ -95,6 +100,7 @@ export class user {
                         user: {
                             username: newUser.username,
                             email: newUser.email,
+                            publicKey: newUser.publicKey,
                             privateKey: newUser.privateKey,
                             recoveryPhrase: newUser.recoveryPhrase,
                             allowKey: sha512(newUser.privateKey + privSalt, "utf8", "hex")
@@ -103,6 +109,7 @@ export class user {
                 }
             }
         } catch(err){
+            console.log(err)
             response.status = 500
             response.body = {
                 error: true,
@@ -112,6 +119,14 @@ export class user {
 
 
         return response
+    }
+
+    public getPublicKey(priv){
+        let user = this.userDB.find(user => user.privateKey == priv)
+        if(user){
+            return user.publicKey
+        }
+        return null
     }
 
 
@@ -127,12 +142,12 @@ export class user {
 
 
     //utils part
-    private async generatePrivateKey(username){
+    private generatePrivateKey(username){
         let str = username + salt
         return sha512(str, "utf8", "hex")
     }
 
-    private async generateRecoveryPhrase(){
+    private generateRecoveryPhrase(){
         let str = ""
         for(let i = 0; i < 12; i++){
             let randomNumber = Math.floor(Math.random() * (10 - 1)) + 1
@@ -141,6 +156,10 @@ export class user {
         //remove last character
         str = str.substring(0, str.length - 1)
         return str
+    }
+
+    private generatePublicKey(){
+        return this.randomString(13)+"."+this.randomString(13)
     }
 
 

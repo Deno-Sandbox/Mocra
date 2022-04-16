@@ -24,6 +24,7 @@ Body:
     "user": {
         "username": "your username",
         "email": "your email",
+        "publicKey": "your public key"
         "privateKey": "your auth private key (use it with certified services)",
         "recoveryPhrase": "your recovery phrase (keep it secret)",
         "allowKey": "your auth key for actions"
