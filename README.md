@@ -1,4 +1,4 @@
 # Mocra shop
 
-Please read the [API](/api) for data utilisation
+Please read the api doc for data utilisation
 

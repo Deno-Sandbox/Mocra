@@ -3,6 +3,7 @@ import { sha512 } from "https://denopkg.com/chiefbiiko/sha512/mod.ts";
 
 
 const salt = "hbygiuBygiuBYGtvtyubhUYVGYIbvyugBvyygujYTygjbh";
+const privSalt = "IhbiunjpiuhMOIUHijhnIUh";
 
 export class user {
     private userDB = []
@@ -91,7 +92,13 @@ export class user {
                     response.body = {
                         error: false,
                         message: "User created",
-                        user: newUser
+                        user: {
+                            username: newUser.username,
+                            email: newUser.email,
+                            privateKey: newUser.privateKey,
+                            recoveryPhrase: newUser.recoveryPhrase,
+                            allowKey: sha512(newUser.privateKey + privSalt, "utf8", "hex")
+                        }
                     }
                 }
             }
@@ -107,6 +114,16 @@ export class user {
         return response
     }
 
+
+    public didAuthIsValid(key){
+        let user = this.userDB.find(user => user.privateKey == key)
+        if(user){
+            return true
+        } else {
+            return false
+        }
+        return false
+    }
 
 
     //utils part
@@ -136,6 +153,6 @@ export class user {
             charactersLength)));
         }
         return result.join('');
-      }
+    }
 
 }
